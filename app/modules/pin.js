@@ -2,17 +2,24 @@ define([
   // Application.
   "app",
 
+  "backbone",
+
   // Views
-  "modules/photo/pin",  
+  "modules/photo/pin"
 ],
 
 // Map dependencies from above array.
-function(app, View) {
+function(app, Backbone, View) {
 
   // Create a new module.
   var Pin = app.module();
 
   // Default model.
+  Pin.Model = Backbone.Model.extend({
+    defaults: {
+      'state': 'stop'
+    },
+  });
 
   // Default collection.
 

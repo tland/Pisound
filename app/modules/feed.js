@@ -24,9 +24,10 @@ function(app, Backbone, View, Post) {
 
   // Default collection.
   Feed.Collection = Backbone.Collection.extend({
+    
     model: Post.Model,
 
-    feedUrl: "http://feeds.feedburner.com/TechCrunch/",
+    feedUrl: "http://feeds.feedburner.com/tedtalks_audio/",
 
     parse: function(result) {
       return result.feed.entries;

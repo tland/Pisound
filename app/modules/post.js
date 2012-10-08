@@ -13,14 +13,19 @@ function(app, View) {
 
   // Default model.
   Post.Model = Backbone.Model.extend({
-     name: "Post",
+    name: "Post",
      
-     getImage: function() {
+    getImage: function() {
       var mediaGroups = this.get("mediaGroups");
-      // Most image urls from Techcrunch support the w param for server-side scaling.
-      // Replacing the default value with 192 for a larger image that looks nicer in the UI
-      return mediaGroups && mediaGroups[0].contents[0].url.replace(/w=\d+/, "w=192");
-    } 
+
+      return mediaGroups && mediaGroups[0].contents[0].thumbnails[0].url;
+    },
+
+    getAudio: function() {
+      var mediaGroups = this.get("mediaGroups");
+
+      return mediaGroups && mediaGroups[0].contents[0].url;
+    }
   });
 
   // Default collection.

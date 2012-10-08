@@ -5,11 +5,11 @@ define([
   // Modules.
   "modules/todo",
 
-  "modules/feed"
-  //"views/feed"
+  "modules/feed",
+  "modules/player"
 ],
 
-function(app, Todo, Feed) {
+function(app, Todo, Feed, Player) {
 
   // An example Backbone application contributed by
   // [Jérôme Gravel-Niquet](http://jgn.me/). This demo uses a simple
@@ -29,11 +29,13 @@ function(app, Todo, Feed) {
 
     loadFeed: function() {
       var coll = new Feed.Collection();
+      var g_player =  new Player.Model();
 
       app.useLayout("feed").setViews({       
         // Attach the root content View to the layout.
         ".feed": new Feed.View({
-          collection: coll
+          collection: coll,
+          player: g_player
         })
       }).render();
 

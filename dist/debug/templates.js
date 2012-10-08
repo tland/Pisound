@@ -1,5 +1,13 @@
 this['JST'] = this['JST'] || {};
 
+this['JST']['app/templates/layouts/feed.html'] = function(obj){
+var __p='';var print=function(){__p+=Array.prototype.join.call(arguments, '')};
+with(obj||{}){
+__p+='  <div class="feed"></div>';
+}
+return __p;
+};
+
 this['JST']['app/templates/layouts/main.html'] = function(obj){
 var __p='';var print=function(){__p+=Array.prototype.join.call(arguments, '')};
 with(obj||{}){
@@ -8,28 +16,44 @@ __p+='<div id="todoapp">\n  <div class="header">\n    <h1>Todos</h1>\n  </div>\n
 return __p;
 };
 
-this['JST']['app/templates/pin/pin.html'] = function(obj){
+this['JST']['app/templates/photo/pin.html'] = function(obj){
 var __p='';var print=function(){__p+=Array.prototype.join.call(arguments, '')};
 with(obj||{}){
-__p+='  <!-- Templates -->\n  <script type="text/template" id="pin-template">\n    <img width="192" src="'+
+__p+='<img width="192" src="'+
 _.escape( imageUrl )+
-'"></img>\n    <figcaption>\n      '+
+'"></img>\n<audio controls name="media" class="audio" width="192">\n\t<source src="'+
+_.escape( audioUrl )+
+'" type="audio/mpeg">\n</video>\n<figcaption>\n  '+
 _.escape( title )+
-'\n    </figcaption>\n  </script>';
+'\n</figcaption>';
 }
 return __p;
 };
 
-this['JST']['app/templates/post/post.html'] = function(obj){
+this['JST']['app/templates/photo/player.html'] = function(obj){
 var __p='';var print=function(){__p+=Array.prototype.join.call(arguments, '')};
 with(obj||{}){
-__p+='  <!-- Templates -->\n  <script type="text/template" id="post-template">\n    <a href="'+
+__p+='<img width="192" src="'+
+_.escape( imageUrl )+
+'"></img>\n<!--audio controls name="media" class="audio" width="182">\n\t<source src="'+
+_.escape( audioUrl )+
+'" type="audio/mpeg">\n</audio -->\n  <button class="control play">Play</button>\n  <button class="control pause">Pause</button>\n<figcaption>\n  '+
+_.escape( title )+
+'\n</figcaption>';
+}
+return __p;
+};
+
+this['JST']['app/templates/photo/post.html'] = function(obj){
+var __p='';var print=function(){__p+=Array.prototype.join.call(arguments, '')};
+with(obj||{}){
+__p+='  <!-- Templates -->\n  <!--script type="text/template" id="post-template"-->\n    <a href="'+
 _.escape( link )+
 '"><h2>'+
 _.escape( title )+
 '</h2></a>\n    <article>'+
 ( content )+
-'</article>\n  </script>';
+'</article>\n  <!--/script-->';
 }
 return __p;
 };

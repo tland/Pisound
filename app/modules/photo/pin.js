@@ -14,18 +14,23 @@ function($, Backbone, Post) {
     template: "photo/pin",
 
     events: {
-      'click': 'onClick'
+      'click img': 'onClick'
+    },
+
+    initialize: function() {
+      this.post = this.options.post;
     },
 
     onClick: function() {
-      var postView = new Post.View({model: this.model});
+      var postView = new Post.View({post: this.post});
       postView.show();
     },
 
     serialize: function() {
       return {
-        imageUrl: this.model.getImage(),
-        title: this.model.get("title")
+        imageUrl: this.post.getImage(),
+        audioUrl: this.post.getAudio(),
+        title: this.post.get("title")
       };
     }
   });

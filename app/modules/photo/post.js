@@ -17,10 +17,11 @@ function($, Backbone) {
     initialize: function() {
       $('#lightbox').click(_.bind(this.hide, this));
       $(document).on('keydown.lightbox', _.bind(this.onKeyDown, this));
+      this.post = this.options.post;
     },
 
     serialize: function() {
-      return this.model.toJSON();
+      return this.post.toJSON();
     },
 
     show: function() {

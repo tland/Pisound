@@ -339,6 +339,14 @@ var requirejs, require, define;
 
 this['JST'] = this['JST'] || {};
 
+this['JST']['app/templates/layouts/feed.html'] = function(obj){
+var __p='';var print=function(){__p+=Array.prototype.join.call(arguments, '')};
+with(obj||{}){
+__p+='  <div class="feed"></div>';
+}
+return __p;
+};
+
 this['JST']['app/templates/layouts/main.html'] = function(obj){
 var __p='';var print=function(){__p+=Array.prototype.join.call(arguments, '')};
 with(obj||{}){
@@ -347,28 +355,44 @@ __p+='<div id="todoapp">\n  <div class="header">\n    <h1>Todos</h1>\n  </div>\n
 return __p;
 };
 
-this['JST']['app/templates/pin/pin.html'] = function(obj){
+this['JST']['app/templates/photo/pin.html'] = function(obj){
 var __p='';var print=function(){__p+=Array.prototype.join.call(arguments, '')};
 with(obj||{}){
-__p+='  <!-- Templates -->\n  <script type="text/template" id="pin-template">\n    <img width="192" src="'+
+__p+='<img width="192" src="'+
 _.escape( imageUrl )+
-'"></img>\n    <figcaption>\n      '+
+'"></img>\n<audio controls name="media" class="audio" width="192">\n\t<source src="'+
+_.escape( audioUrl )+
+'" type="audio/mpeg">\n</video>\n<figcaption>\n  '+
 _.escape( title )+
-'\n    </figcaption>\n  </script>';
+'\n</figcaption>';
 }
 return __p;
 };
 
-this['JST']['app/templates/post/post.html'] = function(obj){
+this['JST']['app/templates/photo/player.html'] = function(obj){
 var __p='';var print=function(){__p+=Array.prototype.join.call(arguments, '')};
 with(obj||{}){
-__p+='  <!-- Templates -->\n  <script type="text/template" id="post-template">\n    <a href="'+
+__p+='<img width="192" src="'+
+_.escape( imageUrl )+
+'"></img>\n<!--audio controls name="media" class="audio" width="182">\n\t<source src="'+
+_.escape( audioUrl )+
+'" type="audio/mpeg">\n</audio -->\n  <button class="control play">Play</button>\n  <button class="control pause">Pause</button>\n<figcaption>\n  '+
+_.escape( title )+
+'\n</figcaption>';
+}
+return __p;
+};
+
+this['JST']['app/templates/photo/post.html'] = function(obj){
+var __p='';var print=function(){__p+=Array.prototype.join.call(arguments, '')};
+with(obj||{}){
+__p+='  <!-- Templates -->\n  <!--script type="text/template" id="post-template"-->\n    <a href="'+
 _.escape( link )+
 '"><h2>'+
 _.escape( title )+
 '</h2></a>\n    <article>'+
 ( content )+
-'</article>\n  </script>';
+'</article>\n  <!--/script-->';
 }
 return __p;
 };
@@ -15344,7 +15368,7 @@ define("backbone", ["lodash","jquery"], (function (global) {
 }(this)));
 
 /*!
- * backbone.layoutmanager.js v0.6.5
+ * backbone.layoutmanager.js v0.6.6
  * Copyright 2012, Tim Branyen (@tbranyen)
  * backbone.layoutmanager.js may be freely distributed under the MIT license.
  */
@@ -15462,13 +15486,16 @@ var LayoutManager = Backbone.View.extend({
       }
     }
 
+    // If the View has not been properly set up, throw an Error message
+    // indicating that the View needs `manage: true` set.
+    if (!view.__manager__) {
+      throw new Error("manage property not set.  " +
+        "http://tbranyen.github.com/backbone.layoutmanager/#usage/struc" +
+        "turing-a-view");
+    }
+
     // Instance overrides take precedence, fallback to prototype options.
     options = view._options();
-
-    // Set up the View, if it's not already managed.
-    if (!view.__manager__) {
-      LayoutManager.setupView(view, options);
-    }
 
     // Custom template render function.
     view.render = function(done) {
@@ -15510,7 +15537,7 @@ var LayoutManager = Backbone.View.extend({
       }
 
       // Remove subViews without the `keep` flag set to `true`.
-      view._removeView();
+      view._removeViews();
 
       // Call the original render method.
       LayoutManager.prototype.render.call(view).then(renderCallback);
@@ -15580,24 +15607,26 @@ var LayoutManager = Backbone.View.extend({
   // This function returns a promise that can be chained to determine
   // once all subviews and main view have been rendered into the view.el.
   render: function(done) {
+    var promise;
     var root = this;
     var options = this._options();
     var viewDeferred = options.deferred();
+    var manager = this.__manager__;
 
     // Ensure duplicate renders don't override.
-    if (this.__manager__.renderDeferred) {
+    if (manager.renderDeferred) {
       // Set the most recent done callback.
-      this.__manager__.callback = done;
+      manager.callback = done;
 
       // Return the deferred.
-      return this.__manager__.renderDeferred;
+      return manager.renderDeferred;
     }
+
+    // Disable the ability for any new sub-views to be added.
+    manager.renderDeferred = viewDeferred;
     
     // Wait until this View has rendered before dealing with nested Views.
     this._render(LayoutManager._viewRender).fetch.then(function() {
-      // Disable the ability for any new sub-views to be added.
-      root.__manager__.renderDeferred = viewDeferred;
-
       // Create a list of promises to wait on until rendering is done. Since
       // this method will run on all children as well, its sufficient for a
       // full hierarchical. 
@@ -15649,7 +15678,7 @@ var LayoutManager = Backbone.View.extend({
 
     // Return a promise that resolves once all immediate subViews have
     // rendered.
-    return viewDeferred.then(function() {
+    promise = viewDeferred.then(function() {
       // Only call the done function if a callback was provided.
       if (_.isFunction(done)) {
         done.call(root, root.el);
@@ -15675,11 +15704,15 @@ var LayoutManager = Backbone.View.extend({
       // Remove the rendered deferred.
       delete root.__manager__.renderDeferred;
     });
+
+    // Proxy the View's properties to this promise for chaining purposes.
+    return _.defaults(promise, root);
   },
 
   // Ensure the cleanup function is called whenever remove is called.
   remove: function() {
-    LayoutManager.cleanViews(this);
+    // Force remove itself from it's parent.
+    LayoutManager._removeView(this, true);
 
     // Call the original remove function.
     return this._remove.apply(this, arguments);
@@ -15862,6 +15895,9 @@ var LayoutManager = Backbone.View.extend({
       _options: LayoutManager.prototype._options,
 
       // Add the ability to remove all Views.
+      _removeViews: LayoutManager._removeViews,
+
+      // Add the ability to remove itself.
       _removeView: LayoutManager._removeView
     });
 
@@ -15900,7 +15936,7 @@ var LayoutManager = Backbone.View.extend({
       var afterRender = this._options().afterRender;
 
       // Ensure all subViews are properly scrubbed.
-      this._removeView();
+      this._removeViews();
 
       // If a beforeRender function is defined, call it.
       if (_.isFunction(beforeRender)) {
@@ -15943,9 +15979,10 @@ var LayoutManager = Backbone.View.extend({
         var findRootParent = function(view) {
           var manager = view.__manager__;
 
-          // If a parent exists, recurse.
-          if (manager.parent && !manager.hasRendered) {
-            return findRootParent(manager.parent);
+          // If a parent exists and the parent has not rendered, return that
+          // parent.
+          if (manager.parent && !manager.parent.__manager__.hasRendered) {
+            return manager.parent;
           }
 
           // This is the most root parent.
@@ -15959,11 +15996,13 @@ var LayoutManager = Backbone.View.extend({
 
         // If this view has already rendered, simply call the callback.
         if (parent.__manager__.hasRendered) {
-          return options.when([manager.viewDeferred, parent.__manager__.viewDeferred]).then(function() {
+          return options.when([manager.viewDeferred,
+            parent.__manager__.viewDeferred]).then(function() {
             done.call(view);
           });
         }
 
+        // Find the parent highest in the chain that has not yet rendered.
         parent = findRootParent(view);
 
         // Once the parent has finished rendering, trickle down and
@@ -16008,38 +16047,49 @@ var LayoutManager = Backbone.View.extend({
   },
 
   // Remove all subViews.
-  _removeView: function(root) {
+  _removeViews: function(root) {
     // Allow removeView to be called on instances.
     root = root || this;
 
     // Iterate over all of the view's subViews.
     root.getViews().each(function(view) {
-      // Shorthand the manager for easier access.
-      var manager = view.__manager__;
-      // Test for keep.
-      var keep = _.isBoolean(view.keep) ? view.keep : view.options.keep;
-
-      // Only remove views that do not have `keep` attribute set.
-      if (!keep && manager.append === true && manager.hasRendered) {
-        // Remove the View completely.
-        view.remove();
-
-        // If this is an array of items remove items that are not marked to
-        // keep.
-        if (_.isArray(manager.parent.views[manager.selector])) {
-          // Remove directly from the Array reference.
-          return manager.parent.getView(function(view, i) {
-            // If the selectors match, splice off this View.
-            if (view.__manager__.selector === manager.selector) {
-              manager.parent.views[manager.selector].splice(i, 1);
-            }
-          });
-        }
-
-        // Otherwise delete the parent selector.
-        delete manager.parent[manager.selector];
-      }
+      LayoutManager._removeView(view, true);
     });
+  },
+
+  // Remove a single subView.
+  _removeView: function(view, force) {
+    // Shorthand the manager for easier access.
+    var manager = view.__manager__;
+    // Test for keep.
+    var keep = _.isBoolean(view.keep) ? view.keep : view.options.keep;
+    // Only allow force if View contains a parent.
+    force = force && manager.parent;
+
+    // Ensure that cleanup is called correctly when `_removeView` is triggered.
+    LayoutManager.cleanViews(view);
+
+    // Only remove views that do not have `keep` attribute set, unless the
+    // force flag is set.
+    if (!keep && (manager.append === true || force) && manager.hasRendered) {
+      // Remove the View completely.
+      view.$el.remove();
+
+      // If this is an array of items remove items that are not marked to
+      // keep.
+      if (_.isArray(manager.parent.views[manager.selector])) {
+        // Remove directly from the Array reference.
+        return manager.parent.getView(function(view, i) {
+          // If the managers match, splice off this View.
+          if (view.__manager__ === manager) {
+            manager.parent.views[manager.selector].splice(i, 1);
+          }
+        });
+      }
+
+      // Otherwise delete the parent selector.
+      delete manager.parent.views[manager.selector];
+    }
   }
 });
 
@@ -16644,15 +16694,669 @@ function(app, Backbone, Views) {
 
 });
 
+/* RequireJS Use Plugin v0.2.0
+ * Copyright 2012, Tim Branyen (@tbranyen)
+ * use.js may be freely distributed under the MIT license.
+ */
+(function() {
+
+// Cache used to map configuration options between load and write.
+var buildMap = {};
+
+define('use',{
+  version: "0.2.0",
+
+  // Invoked by the AMD builder, passed the path to resolve, the require
+  // function, done callback, and the configuration options.
+  load: function(name, req, load, config) {
+    // Dojo provides access to the config object through the req function.
+    if (!config) {
+      config = require.rawConfig;
+    }
+
+    var module = config.use && config.use[name];
+
+    // No module to load, throw.
+    if (!module) {
+      throw new TypeError("Module '" + name + "' is undefined or does not" +
+        " have a `use` config. Make sure it exists, add a `use` config, or" +
+        " don't use use! on it");
+    }
+
+    // Attach to the build map for use in the write method below.
+    buildMap[name] = { deps: module.deps || [], attach: module.attach };
+
+    // Read the current module configuration for any dependencies that are
+    // required to run this particular non-AMD module.
+    req(module.deps || [], function() {
+      var depArgs = arguments;
+      // Require this module
+      req([name], function() {
+        // Attach property
+        var attach = module.attach;
+
+        // If doing a build don't care about loading
+        if (config.isBuild) { 
+          return load();
+        }
+
+        // Return the correct attached object
+        if (typeof attach === "function") {
+          return load(attach.apply(window, depArgs));
+        }
+
+        // Use window for now (maybe this?)
+        return load(window[attach]);
+      });
+    });
+  },
+
+  // Also invoked by the AMD builder, this writes out a compatible define
+  // call that will work with loaders such as almond.js that cannot read
+  // the configuration data.
+  write: function(pluginName, moduleName, write) {
+    var module = buildMap[moduleName];
+    var deps = module.deps;
+    var normalize = { attach: null, deps: "" };
+
+    // Normalize the attach to window[name] or function() { }
+    if (typeof attach === "function") {
+      normalize.attach = "return " + module.attach.toString() + ";";
+    } else {
+      normalize.attach = "return window['" + module.attach + "'];";
+    }
+
+    // Normalize the dependencies to have proper string characters
+    if (deps.length) {
+      normalize.deps = "'" + deps.toString().split(",").join("','") + "'";
+    }
+
+    // Write out the actual definition
+    write([
+      "define('", pluginName, "!", moduleName, "', ",
+        "[", normalize.deps, "],",
+
+        "function() {",
+          normalize.attach,
+        "}",
+
+      ");\n"
+    ].join(""));
+  }
+});
+
+})();
+
+/*!
+ * jQuery imagesLoaded plugin v2.0.1
+ * http://github.com/desandro/imagesloaded
+ *
+ * MIT License. by Paul Irish et al.
+ */
+
+/*jshint curly: true, eqeqeq: true, noempty: true, strict: true, undef: true, browser: true */
+/*global jQuery: false */
+
+;(function($, undefined) {
+
+
+// blank image data-uri bypasses webkit log warning (thx doug jones)
+var BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+
+$.fn.imagesLoaded = function( callback ) {
+	var $this = this,
+		deferred = $.isFunction($.Deferred) ? $.Deferred() : 0,
+		hasNotify = $.isFunction(deferred.notify),
+		$images = $this.find('img').add( $this.filter('img') ),
+		loaded = [],
+		proper = [],
+		broken = [];
+
+	function doneLoading() {
+		var $proper = $(proper),
+			$broken = $(broken);
+
+		if ( deferred ) {
+			if ( broken.length ) {
+				deferred.reject( $images, $proper, $broken );
+			} else {
+				deferred.resolve( $images );
+			}
+		}
+
+		if ( $.isFunction( callback ) ) {
+			callback.call( $this, $images, $proper, $broken );
+		}
+	}
+
+	function imgLoaded( img, isBroken ) {
+		// don't proceed if BLANK image, or image is already loaded
+		if ( img.src === BLANK || $.inArray( img, loaded ) !== -1 ) {
+			return;
+		}
+
+		// store element in loaded images array
+		loaded.push( img );
+
+		// keep track of broken and properly loaded images
+		if ( isBroken ) {
+			broken.push( img );
+		} else {
+			proper.push( img );
+		}
+
+		// cache image and its state for future calls
+		$.data( img, 'imagesLoaded', { isBroken: isBroken, src: img.src } );
+
+		// trigger deferred progress method if present
+		if ( hasNotify ) {
+			deferred.notifyWith( $(img), [ isBroken, $images, $(proper), $(broken) ] );
+		}
+
+		// call doneLoading and clean listeners if all images are loaded
+		if ( $images.length === loaded.length ){
+			setTimeout( doneLoading );
+			$images.unbind( '.imagesLoaded' );
+		}
+	}
+
+	// if no images, trigger immediately
+	if ( !$images.length ) {
+		doneLoading();
+	} else {
+		$images.bind( 'load.imagesLoaded error.imagesLoaded', function( event ){
+			// trigger imgLoaded
+			imgLoaded( event.target, event.type === 'error' );
+		}).each( function( i, el ) {
+			var src = el.src;
+
+			// find out if this image has been already checked for status
+			// if it was, and src has not changed, call imgLoaded on it
+			var cached = $.data( el, 'imagesLoaded' );
+			if ( cached && cached.src === src ) {
+				imgLoaded( el, cached.isBroken );
+				return;
+			}
+
+			// if complete is true and browser supports natural sizes, try
+			// to check for image status manually
+			if ( el.complete && el.naturalWidth !== undefined ) {
+				imgLoaded( el, el.naturalWidth === 0 || el.naturalHeight === 0 );
+				return;
+			}
+
+			// cached images don't fire load sometimes, so we reset src, but only when
+			// dealing with IE, or image is complete (loaded) and failed manual check
+			// webkit hack from http://groups.google.com/group/jquery-dev/browse_thread/thread/eee6ab7b2da50e1f
+			if ( el.readyState || el.complete ) {
+				el.src = BLANK;
+				el.src = src;
+			}
+		});
+	}
+
+	return deferred ? deferred.promise( $this ) : $this;
+};
+
+})(jQuery);
+define("libs/jquery.imagesloaded", function(){});
+
+define('use!libs/jquery.imagesloaded', ['jquery'],function() {return window['function ($) {
+        return $.fn.imagesLoaded;
+      }'];});
+
+define('modules/photo/post',[
+  "jquery",
+
+  "backbone"
+],
+
+function($, Backbone) {
+
+  var View = Backbone.View.extend({
+    className: 'post',
+    template: "photo/post",
+
+    events: {
+      'click': 'stopPropagation'
+    },
+
+    initialize: function() {
+      $('#lightbox').click(_.bind(this.hide, this));
+      $(document).on('keydown.lightbox', _.bind(this.onKeyDown, this));
+    },
+
+    serialize: function() {
+      return this.model.toJSON();
+    },
+
+    show: function() {
+      $('#lightbox').append(this.render().$el).show();
+      $('body').css('overflow', 'hidden');
+    },
+
+    hide: function() {
+      this.remove();
+      $('#lightbox').hide();
+      $('body').css('overflow', '');
+      $('#lightbox').off();
+      $(document).off('.lightbox');
+    },
+
+    onKeyDown: function(e) {
+      if (e.keyCode == 27) this.hide();
+    },
+
+    stopPropagation: function(e) {
+      e.stopPropagation();
+    }
+  });
+
+  return View;
+});
+define('modules/post',[
+  // Application.
+  "app",
+
+  "modules/photo/post"
+],
+
+// Map dependencies from above array.
+function(app, View) {
+
+  // Create a new module.
+  var Post = app.module();
+
+  // Default model.
+  Post.Model = Backbone.Model.extend({
+     name: "Post",
+     
+     getImage: function() {
+      var mediaGroups = this.get("mediaGroups");
+
+      return mediaGroups && mediaGroups[0].contents[0].thumbnails[0].url;
+    },
+
+    getAudio: function() {
+      var mediaGroups = this.get("mediaGroups");
+
+      return mediaGroups && mediaGroups[0].contents[0].url;
+    }
+  });
+
+  // Default collection.
+
+  Post.View = View;
+
+  // Return the module for AMD compliance.
+  return Post;
+
+});
+
+define('modules/photo/pin',[
+  "jquery",
+  
+  "backbone",
+  "modules/post"
+],
+
+function($, Backbone, Post) {
+
+  var View = Backbone.View.extend({
+    className: 'pin',
+    tagName: 'figure',
+
+    template: "photo/pin",
+
+    events: {
+      'click img': 'onClick'
+    },
+
+    initialize: function() {
+      console.log("Pin.view.init");
+    },
+
+    onClick: function() {
+      var postView = new Post.View({model: this.model});
+      postView.show();
+    },
+
+    serialize: function() {
+      return {
+        imageUrl: this.model.getImage(),
+        audioUrl: this.model.getAudio(),
+        title: this.model.get("title")
+      };
+    }
+  });
+
+  return View;
+});
+define('modules/pin',[
+  // Application.
+  "app",
+
+  // Views
+  "modules/photo/pin"
+],
+
+// Map dependencies from above array.
+function(app, View) {
+
+  // Create a new module.
+  var Pin = app.module();
+
+  // Default model.
+
+  // Default collection.
+
+  Pin.View = View;
+
+  // Return the module for AMD compliance.
+  return Pin;
+
+});
+
+define('modules/photo/player',[
+  "jquery",
+  
+  "modules/pin"
+],
+
+function($, Pin) {
+
+  var View = Pin.View.extend({
+
+    template: "photo/player",
+
+    events: _.extend({
+      'click .play': 'play',
+      'click .pause': 'pause'
+    }, Pin.View.prototype.events),
+
+    initialize: function() {
+      console.log("player.view.init");
+      this.createAudio();
+      _.bindAll(this, 'render', 'updateTrack', 'updateState'); 
+
+      this.player = this.options.player;
+      //this.player.bind('change:state', this.updateState);      
+      //_.bind('change:state', this.updateState, this.player);      
+    },
+
+    serialize: function() {
+      return {
+        title: this.model.get("title"), 
+        imageUrl: this.model.getImage(),
+        audioUrl: this.model.getAudio()
+      };
+    },
+
+    createAudio: function() {
+      this.audio = new Audio();
+    },
+    
+    updateState: function() {
+      console.log("+updateState");      
+      this.updateTrack();
+      this.$("button.play").toggle(this.player.isStopped());
+      this.$('button.pause').toggle(this.player.isPlaying());
+    },
+    
+    updateTrack: function() {
+      console.log("+updateTrack");
+      this.audio.src = this.model.getAudio();
+      if (this.player.get('state') == 'play') {
+        this.audio.play();
+      } else {
+        this.audio.pause();
+      }
+    },
+    play: function() {
+      console.log("+play");           
+      this.player.play();
+    },
+    
+    pause: function() {
+      console.log("+pause");           
+      this.player.pause();
+    }
+  });
+
+  return View;
+});
+define('modules/player',[
+  // Application.
+  "app",
+
+  "modules/photo/player",
+
+  "modules/post"
+],
+
+// Map dependencies from above array.
+function(app, View, Post) {
+
+  // Create a new module.
+  var Player = app.module();
+
+  // Default model.
+  Player.Model = Backbone.Model.extend({
+    defaults: {
+      'currentTrackIndex': 0,
+      'state': 'stop'
+    },
+    
+    initialize: function() {
+    },
+    
+    play: function() {
+      this.set({'state': 'play'});
+    },
+    
+    pause: function() {
+      this.set({'state': 'pause'});
+    },
+    
+    isPlaying: function() {
+      return (this.get('state') == 'play');
+    },
+    
+    isStopped: function() {
+      return (!this.isPlaying());
+    },
+    
+    logCurrentTrack: function() {
+      console.log("Player track is: " + this.get('currentTrackIndex'), this);
+    }  
+  });
+
+  // Default collection.
+
+  Player.View = View;
+
+  // Return the module for AMD compliance.
+  return Player;
+
+});
+
+define('modules/photo/feed',[
+  "jquery",
+  
+  "use!libs/jquery.imagesloaded",
+  "backbone",
+  "modules/pin",
+  "modules/player"
+],
+
+function($, jqImagesLoaded, Backbone, Pin, Player) {
+
+  var View = Backbone.View.extend({
+    //template: "photo/pin",
+    template: "photo/player",
+
+    views: [],
+
+    initialize: function() {
+      //this.collection.on("reset", this.render, this);
+      
+      this.collection.on("reset", function() {
+        console.log("reset triggered");
+        this.render();
+      }, this);
+
+      this.player = this.options.player;
+
+      $(window).resize(_.bind(this.doLayout, this));
+    },
+
+    getNumColumns: function() {
+      return Math.floor(this.$el.width() / this.columnWidth);
+    },
+
+    minIndex: function(list) {
+      var minValue = Number.MAX_VALUE;
+      var minIndex = null;
+      _(list).each(function(value, index) {
+        if (value < minValue) {
+          minIndex = index;
+          minValue = value;
+        }
+      });
+      return minIndex;
+    },
+
+    doLayout: function() {
+      var numColumns = this.getNumColumns();
+      if (numColumns === this.lastNumColumns) return;
+
+      var tops = [];
+      _(numColumns).times(function() {
+        tops.push(0);
+      });
+
+      // Add each item to the current shortest column
+      _(this.views).each(function(view) {
+        var curColumn = this.minIndex(tops);
+        var top = tops[curColumn];
+        view.$el
+          .css("top", top)
+          .css("left", curColumn * this.columnWidth);
+
+        tops[curColumn] = top + view.$el.outerHeight(true);
+      }, this);
+
+      this.lastNumColumns = numColumns;
+    },
+
+    // Insert all subViews prior to rendering the View.
+    beforeRender: function() {
+      this.$el.empty();
+      this.collection.each(function(post) {
+        var view = new Player.View({model: post, player: this.player});
+        this.views.push(view);
+        this.insertView(view);
+
+      }, this);      
+      console.log("beforeRender");        
+    },
+
+    render: function(manage) {
+      return manage(this).render();
+    },
+
+    // Adjust the layout after the view is rendered.
+    afterRender: function() {
+      var els = $(_(this.views).pluck('el'));
+      els.imagesLoaded().done(_.bind(function() {
+        $('#loading').hide();
+        els.appendTo(this.$el);
+        this.columnWidth = els.outerWidth(true);
+        this.lastNumColumns = null;
+        this.doLayout();
+      }, this));
+    }
+  });
+
+  return View;
+});
+define('modules/feed',[
+  // Application.
+  "app",
+
+  // Libs
+  "backbone",
+
+  // Views
+  "modules/photo/feed",
+
+  "modules/post",
+
+  // Plugins
+  "plugins/backbone-localstorage"  
+],
+
+// Map dependencies from above array.
+function(app, Backbone, View, Post) {
+
+  // Create a new module.
+  var Feed = app.module();
+
+  // Default model.
+
+  // Default collection.
+  Feed.Collection = Backbone.Collection.extend({
+    
+    model: Post.Model,
+
+    //feedUrl: "http://feeds.feedburner.com/TechCrunch/",
+
+    feedUrl: "http://feeds.feedburner.com/tedtalks_audio/",
+
+    parse: function(result) {
+      return result.feed.entries;
+    },
+
+    sync: function(method, model, options) {
+      if (method == 'read') {
+        var feed = new google.feeds.Feed(this.feedUrl);
+        feed.includeHistoricalEntries();
+        feed.setNumEntries((options && options.numEntries) || 10);
+
+        feed.load(function(result) {
+          if (result.error) {
+            options.error(model, result);
+          } else {
+            options.success(result);
+            console.log("feteching feed succeeded");
+          }
+        });
+      } else {
+        throw new Error("Unsupported method: " + method);
+      }    
+    }
+  });
+
+  // Attach the Views sub-module into this module.
+  Feed.View = View;  
+
+  // Return the module for AMD compliance.
+  return Feed;
+
+});
+
 define('router',[
   // Application.
   "app",
 
   // Modules.
-  "modules/todo"
+  "modules/todo",
+
+  "modules/feed",
+  "modules/player"
 ],
 
-function(app, Todo) {
+function(app, Todo, Feed, Player) {
 
   // An example Backbone application contributed by
   // [Jérôme Gravel-Niquet](http://jgn.me/). This demo uses a simple
@@ -16666,6 +17370,26 @@ function(app, Todo) {
     },
 
     index: function() {
+      this.loadFeed();
+      //this.loadTodoList();
+    },
+
+    loadFeed: function() {
+      var coll = new Feed.Collection();
+      var g_player =  new Player.Model();
+
+      app.useLayout("feed").setViews({       
+        // Attach the root content View to the layout.
+        ".feed": new Feed.View({
+          collection: coll,
+          player: g_player
+        })
+      }).render();
+
+      coll.fetch();      
+    },
+
+    loadTodoList: function() {
       // Create a new Todo List.
       var list = new Todo.List();
 
@@ -16688,7 +17412,7 @@ function(app, Todo) {
       }).render();
 
       // Fetch the data from localStorage
-      list.fetch();
+      list.fetch();      
     }
   });
 
@@ -16753,7 +17477,8 @@ require.config({
     // Libraries
     jquery: "../assets/js/libs/jquery",
     lodash: "../assets/js/libs/lodash",
-    backbone: "../assets/js/libs/backbone"
+    backbone: "../assets/js/libs/backbone",
+    use: "../assets/js/plugins/use"    
   },
 
   shim: {
@@ -16767,7 +17492,16 @@ require.config({
 
     // Backbone.localstorage depends on Backbone.
     "plugins/backbone-localstorage": ["backbone"]
-  }
+  },
+
+  use: {
+    "libs/jquery.imagesloaded": {
+      deps: ["jquery"],
+      attach: function($) {
+        return $.fn.imagesLoaded;
+      }
+    }
+  }  
 });
 
 define("config", function(){});

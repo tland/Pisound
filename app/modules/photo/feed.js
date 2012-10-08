@@ -3,13 +3,15 @@ define([
   
   "use!libs/jquery.imagesloaded",
   "backbone",
-  "modules/pin"
+  "modules/pin",
+  "modules/player"
 ],
 
-function($, jqImagesLoaded, Backbone, Pin) {
+function($, jqImagesLoaded, Backbone, Pin, Player) {
 
   var View = Backbone.View.extend({
-    template: "photo/pin",
+    //template: "photo/pin",
+    template: "photo/player",
 
     views: [],
 
@@ -20,6 +22,8 @@ function($, jqImagesLoaded, Backbone, Pin) {
         console.log("reset triggered");
         this.render();
       }, this);
+
+      this.player = this.options.player;
 
       $(window).resize(_.bind(this.doLayout, this));
     },
@@ -67,11 +71,19 @@ function($, jqImagesLoaded, Backbone, Pin) {
     beforeRender: function() {
       this.$el.empty();
       this.collection.each(function(post) {
-        var view = new Pin.View({model: post});
+        var view = new Player.View({
+            post: post, 
+            player: this.player
+        });
         this.views.push(view);
         this.insertView(view);
+
       }, this);      
-      console.log("+");
+      console.log("beforeRender");        
+    },
+
+    render: function(manage) {
+      return manage(this).render();
     },
 
     // Adjust the layout after the view is rendered.
