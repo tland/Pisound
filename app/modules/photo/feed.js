@@ -10,16 +10,12 @@ define([
 function($, jqImagesLoaded, Backbone, Pin, Player) {
 
   var View = Backbone.View.extend({
-    //template: "photo/pin",
-    template: "photo/player",
+    template: "photo/pinPlayer",
 
     views: [],
 
     initialize: function() {
-      //this.collection.on("reset", this.render, this);
-      
       this.collection.on("reset", function() {
-        console.log("reset triggered");
         this.render();
       }, this);
 
@@ -79,7 +75,6 @@ function($, jqImagesLoaded, Backbone, Pin, Player) {
         this.insertView(view);
 
       }, this);      
-      console.log("beforeRender");        
     },
 
     render: function(manage) {
