@@ -10,8 +10,6 @@ define([
 function($, jqImagesLoaded, Backbone, Pin, Player) {
 
   var View = Backbone.View.extend({
-    template: "photo/pinPlayer",
-
     views: [],
 
     initialize: function() {
