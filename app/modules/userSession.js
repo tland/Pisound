@@ -10,11 +10,11 @@ define([
 function(app, jqCookie, View) {
 
   // Create a new module.
-  var Session = app.module();
+  var UserSession = app.module();
 
   // Default model.
-  Session.Model = Backbone.Model.extend({
-    name: "Session",
+  UserSession.Model = Backbone.Model.extend({
+    name: "UserSession",
 
     // MongoDB uses _id as default primary key
     idAttribute: "user_id",
@@ -117,9 +117,9 @@ function(app, jqCookie, View) {
 
   // Default collection.
 
-  Session.View = View;
+  UserSession.View = View;
 
   // Return the module for AMD compliance.
-  return Session;
+  return UserSession;
 
 });

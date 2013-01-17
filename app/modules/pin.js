@@ -5,7 +5,7 @@ define([
   "backbone",
 
   // Views
-  "modules/photo/pin"
+  "modules/feed/pin"
 ],
 
 // Map dependencies from above array.

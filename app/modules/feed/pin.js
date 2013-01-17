@@ -11,7 +11,7 @@ function($, Backbone, Post) {
     className: 'pin',
     tagName: 'figure',
 
-    template: "layouts/photo/pin",
+    template: "layouts/feed/pin",
 
     events: {
       'click img': 'onClick'

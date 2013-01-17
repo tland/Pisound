@@ -2,7 +2,7 @@ define([
   // Application.
   "app",
 
-  "modules/photo/post"
+  "modules/feed/post"
 ],
 
 // Map dependencies from above array.

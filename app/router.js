@@ -7,10 +7,10 @@ define([
 
   "modules/feed",
   "modules/player",
-  "modules/session"
+  "modules/userSession"
 ],
 
-function(app, Todo, Feed, Player, Session) {
+function(app, Todo, Feed, Player, UserSession) {
 
   // An example Backbone application contributed by
   // [Jérôme Gravel-Niquet](http://jgn.me/). This demo uses a simple
@@ -32,8 +32,8 @@ function(app, Todo, Feed, Player, Session) {
     loadSession: function() {
       // fill up topnav section.
       app.buildTopnav("topnav").setViews({
-        ".userauth": new Session.View({
-          session: new Session.Model()
+        ".userauth": new UserSession.View({
+          session: new UserSession.Model()
         })
       }).render();
     },

@@ -7,7 +7,7 @@ define([
 function($, Pin) {
 
   var View = Pin.View.extend({
-    template: "layouts/photo/pinPlayer",
+    template: "layouts/feed/pinPlayer",
 
     events: _.extend({
       'click .play': 'play',

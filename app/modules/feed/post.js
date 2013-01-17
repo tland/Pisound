@@ -8,7 +8,7 @@ function($, Backbone) {
 
   var View = Backbone.View.extend({
     className: 'post',
-    template: "layouts/photo/post",
+    template: "layouts/feed/post",
 
     events: {
       'click': 'stopPropagation'

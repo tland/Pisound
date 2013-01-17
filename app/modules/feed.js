@@ -6,7 +6,7 @@ define([
   "backbone",
 
   // Views
-  "modules/photo/feed",
+  "modules/feed/feed",
 
   "modules/post",
 

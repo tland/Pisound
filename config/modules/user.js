@@ -49,7 +49,7 @@ exports.session = function (req, res) {
     res.send({auth: true, 
       id: req.session.passport.user,
       access_token: req.session.id,
-      username: req.session.username, 
+      username: req.user.name,
       _csrf: req.session._csrf
     });
   } else {

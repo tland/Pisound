@@ -2,7 +2,7 @@ define([
   // Application.
   "app",
 
-  "modules/photo/pinPlayer",
+  "modules/feed/pinPlayer",
 
   "modules/post"
 ],
