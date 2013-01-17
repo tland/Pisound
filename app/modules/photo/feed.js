@@ -4,12 +4,15 @@ define([
   "use!libs/jquery.imagesloaded",
   "backbone",
   "modules/pin",
-  "modules/player"
-],
+  "modules/player",
 
+  // Plugins
+  "plugins/infiniScroll"
+],
 function($, jqImagesLoaded, Backbone, Pin, Player) {
 
   var View = Backbone.View.extend({
+    template: "layouts/feed",
     views: [],
 
     initialize: function() {
@@ -20,6 +23,10 @@ function($, jqImagesLoaded, Backbone, Pin, Player) {
       this.player = this.options.player;
 
       $(window).resize(_.bind(this.doLayout, this));
+
+      this.infiniScroll = new InfiniScroll(this, this.collection, {
+        success: this.appendRender
+      });
     },
 
     getNumColumns: function() {
@@ -30,7 +37,7 @@ function($, jqImagesLoaded, Backbone, Pin, Player) {
       var minValue = Number.MAX_VALUE;
       var minIndex = null;
       _(list).each(function(value, index) {
-        if (value < minValue) {
+        if(value < minValue) {
           minIndex = index;
           minValue = value;
         }
@@ -40,7 +47,7 @@ function($, jqImagesLoaded, Backbone, Pin, Player) {
 
     doLayout: function() {
       var numColumns = this.getNumColumns();
-      if (numColumns === this.lastNumColumns) return;
+      if(numColumns === this.lastNumColumns) return;
 
       var tops = [];
       _(numColumns).times(function() {
@@ -63,20 +70,28 @@ function($, jqImagesLoaded, Backbone, Pin, Player) {
 
     // Insert all subViews prior to rendering the View.
     beforeRender: function() {
-      this.$el.empty();
-      this.collection.each(function(post) {
-        var view = new Player.View({
-            post: post, 
+      if(!this.views.length) {
+        this.$el.empty();
+        this.collection.each(function(post) {
+          var view = new Player.View({
+            post: post,
             player: this.player
-        });
-        this.views.push(view);
-        this.insertView(view);
+          });
+          this.views.push(view);
+          this.insertView(view);
 
-      }, this);      
-    },
-
-    render: function(manage) {
-      return manage(this).render();
+        }, this);
+      } 
+      else {
+        for(var i = 0; i < this.collection.length; i++) {
+          var view = new Player.View({
+            post: this.collection.at(i),
+            player: this.player
+          });
+          this.views.push(view);
+          this.insertView(view);
+        }
+      }
     },
 
     // Adjust the layout after the view is rendered.
@@ -89,6 +104,10 @@ function($, jqImagesLoaded, Backbone, Pin, Player) {
         this.lastNumColumns = null;
         this.doLayout();
       }, this));
+    },
+
+    appendRender: function(viewContainer, collection, response) {
+      viewContainer.render();
     }
   });
 

@@ -25,10 +25,7 @@ function($, _, Backbone) {
     // Allow LayoutManager to augment Backbone.View.prototype.
     manage: true,
 
-    paths: {
-      layout: "app/templates/layouts/",
-      template: "app/templates/"
-    },
+    prefix: "app/templates/",
 
     fetch: function(path) {
       // Initialize done for use in async-mode
@@ -73,7 +70,7 @@ function($, _, Backbone) {
 
       // Create a new Layout with options.
       var layout = new Backbone.Layout(_.extend({
-        template: name,
+        template: "layouts/" + name,
         className: "layout " + name,
         id: "layout"
       }, options));
@@ -89,7 +86,23 @@ function($, _, Backbone) {
 
       // Return the reference, for chainability.
       return layout;
-    }
-  }, Backbone.Events);
+    },
 
+    buildTopnav: function(name, options) {
+      var topnavbar = new Backbone.Layout(_.extend({
+          template: "layouts/" + name,
+          className: "topnav",
+          id: ""
+        }, options));
+
+      $('header').empty().append(topnavbar.el);
+
+      // Render the layout.
+      topnavbar.render();
+
+      // Return the reference, for chainability.
+      return topnavbar;
+    }
+
+  }, Backbone.Events);
 });

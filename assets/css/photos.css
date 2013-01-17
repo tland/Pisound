@@ -1,4 +1,4 @@
-@import "style.css";
+/*@import "style.css"; */
 
 #loading {
   position: absolute;
@@ -36,7 +36,7 @@ html {
   left: 0;
   right: 0;
 }
-
+/*
 header {
   background-color: #FAF7F7;
   box-shadow: 0 1px #FFF inset, 0 1px 2px rgba(34, 25, 25, 0.4);
@@ -57,6 +57,8 @@ h1 {
 body {
   background-color: #F5F4F3;
 }
+
+*/
 
 #lightbox {
   background-color: rgba(255, 255, 255, 0.93);
@@ -82,6 +84,10 @@ body {
 .post > a:not(:hover) {
   color: #000;
   text-decoration: none;
+}
+
+#main {
+  margin-bottom: 20px;
 }
 
 #main .feed img {

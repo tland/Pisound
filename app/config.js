@@ -1,6 +1,6 @@
 // Set the require.js configuration for your application.
 require.config({
-  // Initialize the application with the main application file
+  // Initialize the application with the main.js application file
   deps: ["main"],
 
   paths: {
@@ -12,12 +12,16 @@ require.config({
     jquery: "../assets/js/libs/jquery",
     lodash: "../assets/js/libs/lodash",
     backbone: "../assets/js/libs/backbone",
-    use: "../assets/js/plugins/use"    
+    use: "../assets/js/plugins/use"
   },
 
   shim: {
+    lodash: {
+      exports: '-'
+    },
+
     backbone: {
-      deps: ["lodash", "jquery"],
+      deps: ["jquery", "lodash"],
       exports: "Backbone"
     },
 
@@ -25,7 +29,10 @@ require.config({
     "plugins/backbone.layoutmanager": ["backbone"],
 
     // Backbone.localstorage depends on Backbone.
-    "plugins/backbone-localstorage": ["backbone"]
+    //"plugins/backbone-localstorage": ["backbone"],
+
+    // Backbone-forms depends on Backbone.
+    //"plugins/backbone-forms": ["backbone"],     
   },
 
   use: {
@@ -33,6 +40,13 @@ require.config({
       deps: ["jquery"],
       attach: function($) {
         return $.fn.imagesLoaded;
+      }
+    },
+
+    "libs/jquery.cookie": {
+      deps: ["jquery"],
+      attach: function($) {
+        return $.fn.cookie;
       }
     }
   }  

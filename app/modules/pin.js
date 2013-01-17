@@ -18,7 +18,7 @@ function(app, Backbone, View) {
   Pin.Model = Backbone.Model.extend({
     defaults: {
       'state': 'stop'
-    },
+    }
   });
 
   // Default collection.

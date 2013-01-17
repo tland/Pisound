@@ -1,0 +1,19 @@
+/*@import "style.css";*/
+
+.auth {
+  width: 768px;
+  margin: 20px auto;
+  padding: 20px 30px 20px;
+  background-color: #FFF;
+  box-shadow: 0 3px 8px rgba(34, 25, 25, 0.4);
+  overflow: hidden;
+  z-index: 2;
+}
+
+ul li.show-signin {
+	text-decoration:underline;color:#ff0033
+}
+
+ul li.show-signup {
+	text-decoration:underline;color:#ff0033
+}

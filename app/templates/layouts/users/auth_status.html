@@ -1,0 +1,13 @@
+<% if (authenticated) { %> 
+<p class="navbar-text nav pull-right">Logged in as <a href="#" class="navbar-link"><%= username %></a></p>
+<a href="#" class="signout nav pull-right">Sign out</a>
+<% } else { %>
+<ul id="user_unauthenticated" class="nav">
+	<li class="show-signin">
+		<a href="#">Sign in</a>
+	</li>
+	<li class="show-signup">
+		<a href="#">Sign up</a>
+	</li>
+</ul>
+<% } %>

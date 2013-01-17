@@ -8,7 +8,7 @@ function($, Backbone) {
 
   var View = Backbone.View.extend({
     className: 'post',
-    template: "photo/post",
+    template: "layouts/photo/post",
 
     events: {
       'click': 'stopPropagation'
@@ -25,7 +25,10 @@ function($, Backbone) {
     },
 
     show: function() {
-      $('#lightbox').append(this.render().$el).show();
+      this.render().done(function() {
+        $('#lightbox').append(this.$el).show();       
+      });
+
       $('body').css('overflow', 'hidden');
     },
 

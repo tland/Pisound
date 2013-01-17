@@ -35,12 +35,10 @@ function(app, View, Post) {
     },
 
     updateTrack: function(view, viewId, url) {
-      if (this.activeViewId != viewId 
-         && this.activeView != ''
-         && this.activeView.isPlaying()) {
+      if (this.activeViewId != viewId && this.activeView !== '' && this.activeView.isPlaying()) {
         // stop the current active view if it is playing 
         // the audio.
-          this.activeView.toggleState();
+        this.activeView.toggleState();
       }    
 
       this.activeView = view;

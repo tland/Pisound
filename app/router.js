@@ -6,10 +6,11 @@ define([
   "modules/todo",
 
   "modules/feed",
-  "modules/player"
+  "modules/player",
+  "modules/session"
 ],
 
-function(app, Todo, Feed, Player) {
+function(app, Todo, Feed, Player, Session) {
 
   // An example Backbone application contributed by
   // [Jérôme Gravel-Niquet](http://jgn.me/). This demo uses a simple
@@ -23,14 +24,25 @@ function(app, Todo, Feed, Player) {
     },
 
     index: function() {
+      this.loadSession();
       this.loadFeed();
       //this.loadTodoList();
+    },
+
+    loadSession: function() {
+      // fill up topnav section.
+      app.buildTopnav("topnav").setViews({
+        ".userauth": new Session.View({
+          session: new Session.Model()
+        })
+      }).render();
     },
 
     loadFeed: function() {
       var coll = new Feed.Collection();
       var g_player =  new Player.Model();
 
+      // Use the feed.html layout.
       app.useLayout("feed").setViews({       
         // Attach the root content View to the layout.
         ".feed": new Feed.View({
@@ -46,7 +58,7 @@ function(app, Todo, Feed, Player) {
       // Create a new Todo List.
       var list = new Todo.List();
 
-      // Use the main layout.
+      // Use the main.html layout.
       app.useLayout("main").setViews({
         // Attach the root content View to the layout.
         "form": new Todo.Views.Form({

@@ -11,7 +11,7 @@ define([
   "modules/post",
 
   // Plugins
-  "plugins/backbone-localstorage"  
+  //"plugins/backbone-localstorage"  
 ],
 
 // Map dependencies from above array.
@@ -37,7 +37,7 @@ function(app, Backbone, View, Post) {
       if (method == 'read') {
         var feed = new google.feeds.Feed(this.feedUrl);
         feed.includeHistoricalEntries();
-        feed.setNumEntries((options && options.numEntries) || 10);
+        feed.setNumEntries((options && options.numEntries) || 15);
 
         feed.load(function(result) {
           if (result.error) {

@@ -87,7 +87,9 @@ module.exports = function(grunt) {
     //  To learn more about using the server task, please refer to the code
     //  until documentation has been written.
     server: {
-      port: 8001,
+      server: require("./server"),
+
+      port: 8000, 
       
       files: { "favicon.ico": "favicon.ico" },
 

@@ -8,7 +8,7 @@ define([
   "modules/todo/views",
 
   // Plugins
-  "plugins/backbone-localstorage"
+  //"plugins/backbone-localstorage"
 ],
 
 function(app, Backbone, Views) {
@@ -56,7 +56,7 @@ function(app, Backbone, Views) {
     model: Todo.Model,
 
     // Save all of the todo items under the `"todos"` namespace.
-    localStorage: new Store("todos-backbone"),
+    //localStorage: new Store("todos-backbone"),
 
     // Filter down the list of all todo items that are finished.
     done: function() {
